@@ -132,5 +132,62 @@ router.get('/records/search', async (req, res) => {
   }
 })
 
+router.post('/queries', async (req, res) => {
+  const { question, datasetId } = req.body
+
+  if (!question || !datasetId) {
+    return res.status(400).json({ message: 'Pergunta e datasetId são obrigatórios' })
+  }
+
+  try {
+    // IA mockada
+    let answer = ''
+    if (question.toLowerCase().includes('contrato')) {
+      answer = 'Este documento trata de cláusulas contratuais.'
+    } else {
+      answer = 'A IA identificou informações relevantes.'
+    }
+
+    // Salva no banco
+    const query = await prisma.query.create({
+      data: {
+        userId: req.userId,
+        question,
+        answer
+      }
+    })
+
+    res.status(201).json(query)
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: 'Erro ao registrar a consulta' })
+  }
+})
+
+router.get('/queries', async (req, res) => {
+  try {
+    const queries = await prisma.query.findMany({
+      where: {
+        userId: req.userId
+      },
+      select: {
+        id: true,
+        question: true,
+        answer: true,
+        createdAt: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+
+    res.status(200).json(queries)
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: 'Erro ao buscar histórico de consultas' })
+  }
+})
+
+
 
 export default router
