@@ -1,6 +1,11 @@
 import swaggerJsdoc, { Options } from 'swagger-jsdoc'
 import swaggerUi from 'swagger-ui-express'
 import { Express } from 'express'
+import path, { dirname } from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const options: Options = {
     definition: {
@@ -11,15 +16,14 @@ const options: Options = {
             description: 'Documentação da API para upload, consulta e IA simulada'
         },
         tags: [
-            {
-                name: 'Datasets',
-                description: 'Operações relacionadas a upload e manipulação de datasets'
-            }
+            { name: 'Auth', description: 'Operações de Autenticação' },
+            { name: 'Datasets', description: 'Upload e manipulação de datasets' },
+            { name: 'Busca', description: 'Busca textual nos dados' },
+            { name: 'IA', description: 'Simulação de IA e histórico' },
+            { name: 'Admin', description: 'Operações administrativas' }
         ],
         servers: [
-            {
-                url: 'http://localhost:3000'
-            }
+            { url: 'http://localhost:3000' }
         ],
         components: {
             securitySchemes: {
@@ -31,20 +35,14 @@ const options: Options = {
             }
         },
         security: [
-            {
-                bearerAuth: []
-            }
+            { bearerAuth: [] }
         ]
     },
-    apis: ['./src/routes/*.ts', './prisma/*.prisma']
+    apis: [path.join(__dirname, '../routes/*.js')]
 }
 
 const swaggerSpec = swaggerJsdoc(options)
 
-/**
- * Configura o Swagger na aplicação Express
- * @param app Instância do Express
- */
 export function setupSwagger(app: Express): void {
     app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 }
