@@ -2,3 +2,5 @@ api/node_modules
 api/package-lock.json
 
 api/prisma/migrations
+
+node_modules

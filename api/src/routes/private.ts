@@ -16,20 +16,6 @@ const router = express.Router()
 
 /**
  * @swagger
- * /listar-users:
- *   get:
- *     summary: Lista todos os usuários cadastrados (admin)
- *     tags: [Admin]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Lista de usuários
- */
-router.get('/listar-users', listarUsers)
-
-/**
- * @swagger
  * /me:
  *   get:
  *     summary: Retorna os dados do usuário autenticado
