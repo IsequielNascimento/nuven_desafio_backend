@@ -1,21 +1,34 @@
 // src/controllers/privateController.ts
+import { Request, Response } from 'express'
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-export async function listarUsers(req, res) {
+// GET /users
+export async function listarUsers(req: Request, res: Response) {
   try {
-    const users = await prisma.user.findMany({ omit: { password: true } })
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+      }
+    })
     res.status(200).json({ message: 'Usuários listados', users })
   } catch (error) {
     res.status(500).json({ message: 'Falha no servidor' })
   }
 }
 
-export async function getMe(req, res) {
+// GET /me
+export async function getMe(req: Request, res: Response) {
   try {
+    const userId = req.userId
+    if (!userId) return res.status(401).json({ message: 'Não autenticado' })
+
     const user = await prisma.user.findUnique({
-      where: { id: req.userId },
+      where: { id: userId },
       select: {
         id: true,
         name: true,
@@ -31,10 +44,14 @@ export async function getMe(req, res) {
   }
 }
 
-export async function listarDatasets(req, res) {
+// GET /datasets
+export async function listarDatasets(req: Request, res: Response) {
   try {
+    const userId = req.userId
+    if (!userId) return res.status(401).json({ message: 'Não autenticado' })
+
     const datasets = await prisma.dataset.findMany({
-      where: { userId: req.userId },
+      where: { userId },
       select: { id: true, name: true, createdAt: true },
       orderBy: { createdAt: 'desc' }
     })
@@ -44,7 +61,8 @@ export async function listarDatasets(req, res) {
   }
 }
 
-export async function listarRegistros(req, res) {
+// GET /datasets/:id/records
+export async function listarRegistros(req: Request, res: Response) {
   const datasetId = parseInt(req.params.id)
   try {
     const records = await prisma.record.findMany({
@@ -58,21 +76,27 @@ export async function listarRegistros(req, res) {
   }
 }
 
-export async function buscarRegistros(req, res) {
-  const { query } = req.query
+// GET /records/search?query=...
+export async function buscarRegistros(req: Request, res: Response) {
+  const query = req.query.query as string
   if (!query) return res.status(400).json({ message: 'Parâmetro de busca não informado' })
 
   try {
+    const userId = req.userId
+    if (!userId) return res.status(401).json({ message: 'Não autenticado' })
+
     const datasets = await prisma.dataset.findMany({
-      where: { userId: req.userId },
+      where: { userId },
       select: { id: true }
     })
 
     const datasetIds = datasets.map(d => d.id)
-    const records = await prisma.record.findMany({ where: { datasetId: { in: datasetIds } } })
+    const records = await prisma.record.findMany({
+      where: { datasetId: { in: datasetIds } }
+    })
 
     const results = records.filter(record =>
-      JSON.stringify(record.data).toLowerCase().includes((query).toLowerCase())
+      JSON.stringify(record.data).toLowerCase().includes(query.toLowerCase())
     )
 
     res.status(200).json(results)
@@ -81,19 +105,23 @@ export async function buscarRegistros(req, res) {
   }
 }
 
-export async function criarConsulta(req, res) {
+// POST /queries
+export async function criarConsulta(req: Request, res: Response) {
   const { question, datasetId } = req.body
   if (!question || !datasetId) {
     return res.status(400).json({ message: 'Pergunta e datasetId são obrigatórios' })
   }
 
   try {
+    const userId = req.userId
+    if (!userId) return res.status(401).json({ message: 'Não autenticado' })
+
     const answer = question.toLowerCase().includes('contrato')
       ? 'Este documento trata de cláusulas contratuais.'
       : 'A IA identificou informações relevantes.'
 
     const query = await prisma.query.create({
-      data: { userId: req.userId, question, answer }
+      data: { userId, question, answer }
     })
 
     res.status(201).json(query)
@@ -102,10 +130,14 @@ export async function criarConsulta(req, res) {
   }
 }
 
-export async function listarConsultas(req, res) {
+// GET /queries
+export async function listarConsultas(req: Request, res: Response) {
   try {
+    const userId = req.userId
+    if (!userId) return res.status(401).json({ message: 'Não autenticado' })
+
     const queries = await prisma.query.findMany({
-      where: { userId: req.userId },
+      where: { userId },
       select: { id: true, question: true, answer: true, createdAt: true },
       orderBy: { createdAt: 'desc' }
     })

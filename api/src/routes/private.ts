@@ -1,8 +1,6 @@
 // src/routes/private.ts
 import express from 'express'
 
-import pkg from 'express';
-const { Request, Response } = pkg;
 
 import {
   listarUsers,

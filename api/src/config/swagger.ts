@@ -1,14 +1,21 @@
-import swaggerJsdoc from 'swagger-jsdoc'
+import swaggerJsdoc, { Options } from 'swagger-jsdoc'
 import swaggerUi from 'swagger-ui-express'
+import { Express } from 'express'
 
-const options = {
+const options: Options = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'API Desafio Técnico Backend',
+            title: 'API Desafio Técnico Backend - NUVEN',
             version: '1.0.0',
             description: 'Documentação da API para upload, consulta e IA simulada'
         },
+        tags: [
+            {
+                name: 'Datasets',
+                description: 'Operações relacionadas a upload e manipulação de datasets'
+            }
+        ],
         servers: [
             {
                 url: 'http://localhost:3000'
@@ -29,11 +36,15 @@ const options = {
             }
         ]
     },
-    apis: ['./src/routes/*.js', './prisma/*.prisma']
+    apis: ['./src/routes/*.ts', './prisma/*.prisma']
 }
 
 const swaggerSpec = swaggerJsdoc(options)
 
-export function setupSwagger(app) {
-  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
+/**
+ * Configura o Swagger na aplicação Express
+ * @param app Instância do Express
+ */
+export function setupSwagger(app: Express): void {
+    app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 }
