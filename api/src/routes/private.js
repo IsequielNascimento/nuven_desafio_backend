@@ -7,6 +7,18 @@ import jwt from 'jsonwebtoken'
 const prisma = new PrismaClient()
 const router = express.Router()
 
+/**
+ * @swagger
+ * /listar-users:
+ *   get:
+ *     summary: Lista todos os usuários cadastrados (admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de usuários
+ */
 router.get('/listar-users', async (req,res) => {
 
     try{
@@ -21,6 +33,18 @@ router.get('/listar-users', async (req,res) => {
 
 })
 
+/**
+ * @swagger
+ * /me:
+ *   get:
+ *     summary: Retorna os dados do usuário autenticado
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Dados do usuário autenticado
+ */
 router.get('/me', async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
@@ -45,7 +69,18 @@ router.get('/me', async (req, res) => {
     res.status(500).json({ message: 'Erro ao buscar usuário autenticado' })
   }
 })
-
+/**
+ * @swagger
+ * /datasets:
+ *   get:
+ *     summary: Lista os datasets do usuário autenticado
+ *     tags: [Datasets]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de datasets
+ */
 router.get('/datasets', async (req, res) => {
   try {
     const datasets = await prisma.dataset.findMany({
@@ -68,7 +103,24 @@ router.get('/datasets', async (req, res) => {
     res.status(500).json({ message: 'Erro ao buscar datasets' })
   }
 })
-
+/**
+ * @swagger
+ * /datasets/{id}/records:
+ *   get:
+ *     summary: Lista os registros de um dataset específico
+ *     tags: [Datasets]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Lista de registros do dataset
+ */
 router.get('/datasets/:id/records', async (req, res) => {
   const datasetId = parseInt(req.params.id)
 
@@ -93,7 +145,24 @@ router.get('/datasets/:id/records', async (req, res) => {
     res.status(500).json({ message: 'Erro ao buscar registros do dataset' })
   }
 })
-
+/**
+ * @swagger
+ * /records/search:
+ *   get:
+ *     summary: Busca textual em registros dos datasets do usuário
+ *     tags: [Busca]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: query
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Lista de registros encontrados
+ */
 router.get('/records/search', async (req, res) => {
   const { query } = req.query
 
@@ -132,6 +201,30 @@ router.get('/records/search', async (req, res) => {
   }
 })
 
+
+/**
+ * @swagger
+ * /queries:
+ *   post:
+ *     summary: Envia uma pergunta para simulação de IA
+ *     tags: [IA]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               question:
+ *                 type: string
+ *               datasetId:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: Resposta simulada gerada
+ */
 router.post('/queries', async (req, res) => {
   const { question, datasetId } = req.body
 
@@ -163,6 +256,19 @@ router.post('/queries', async (req, res) => {
     res.status(500).json({ message: 'Erro ao registrar a consulta' })
   }
 })
+
+/**
+ * @swagger
+ * /queries:
+ *   get:
+ *     summary: Lista o histórico de consultas do usuário
+ *     tags: [IA]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de perguntas e respostas
+ */
 
 router.get('/queries', async (req, res) => {
   try {
