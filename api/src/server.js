@@ -1,9 +1,9 @@
-import express from 'express'
-import publicRoutes from './routes/public.js'
-import privateRoutes from './routes/private.js'
-import auth from './middlewares/auth.js'
-import datasetRoutes from './routes/dataset.js'
-import { setupSwagger } from './config/swagger.js'
+import express from 'express';
+import publicRoutes from './routes/public.js';
+import privateRoutes from './routes/private.js';
+import auth from './middlewares/auth.js';
+import datasetRoutes from './routes/dataset.js';
+import { setupSwagger } from './config/swagger.js';
 
 
 const app = express()
