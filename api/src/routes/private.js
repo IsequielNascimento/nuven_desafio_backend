@@ -46,4 +46,91 @@ router.get('/me', async (req, res) => {
   }
 })
 
+router.get('/datasets', async (req, res) => {
+  try {
+    const datasets = await prisma.dataset.findMany({
+      where: {
+        userId: req.userId
+      },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+
+    res.status(200).json(datasets)
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: 'Erro ao buscar datasets' })
+  }
+})
+
+router.get('/datasets/:id/records', async (req, res) => {
+  const datasetId = parseInt(req.params.id)
+
+  try {
+    const records = await prisma.record.findMany({
+      where: {
+        datasetId: datasetId
+      },
+      select: {
+        id: true,
+        data: true,
+        createdAt: true
+      },
+      orderBy: {
+        createdAt: 'asc'
+      }
+    })
+
+    res.status(200).json(records)
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: 'Erro ao buscar registros do dataset' })
+  }
+})
+
+router.get('/records/search', async (req, res) => {
+  const { query } = req.query
+
+  if (!query) {
+    return res.status(400).json({ message: 'Parâmetro de busca não informado' })
+  }
+
+  try {
+    // Busca todos os registros do usuário
+    const datasets = await prisma.dataset.findMany({
+      where: {
+        userId: req.userId
+      },
+      select: {
+        id: true
+      }
+    })
+
+    const datasetIds = datasets.map(d => d.id)
+
+    const records = await prisma.record.findMany({
+      where: {
+        datasetId: { in: datasetIds }
+      }
+    })
+
+    // Filtro textual em memória (por ser JSON)
+    const results = records.filter(record =>
+      JSON.stringify(record.data).toLowerCase().includes(query.toLowerCase())
+    )
+
+    res.status(200).json(results)
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: 'Erro ao buscar registros' })
+  }
+})
+
+
 export default router
