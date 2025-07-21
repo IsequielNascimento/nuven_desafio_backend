@@ -125,38 +125,38 @@ router.get('/queries', listarConsultas)
 /**
  * @swagger
  * /ai/query:
- * post:
- * summary: Envia uma pergunta para a IA externa (Text Generation)
- * tags: [IA]
- * security:
- * - bearerAuth: []
- * requestBody:
- * required: true
- * content:
- * application/json:
- * schema:
- * type: object
- * properties:
- * question:
- * type: string
- * example: "Qual o resumo deste documento?"
- * datasetId:
- * type: integer
- * example: 1
- * responses:
- * 200:
- * description: Resposta gerada pela IA com sucesso
- * content:
- * application/json:
- * schema:
- * type: object
- * properties:
- * question:
- * type: string
- * answer:
- * type: string
- * 500:
- * description: Erro ao processar a consulta de IA
+ *  post:
+ *    summary: Envia uma pergunta para a IA externa (Text Generation)
+ *   tags: [IA]
+ *   security:
+ *     - bearerAuth: []
+ *    requestBody:
+ *    required: true
+ *    content:
+ *    application/json:
+ *     schema:
+ *      type: object
+ *        properties:
+ *          question:
+ *            type: string
+ *              example: "Qual o resumo deste documento?"
+ *      datasetId:
+ *      type: integer
+ *      example: 1
+ *        responses:
+ *          200:
+ *          description: Resposta gerada pela IA com sucesso
+ *    content:
+ *      application/json:
+ *    schema:
+ *      type: object
+ *    properties:
+ *      question:
+ *        type: string
+ *        answer:
+ *        type: string
+ *          500:
+ *          description: Erro ao processar a consulta de IA
  */
 router.post('/ai/query', realizaConsultaIA);
 
