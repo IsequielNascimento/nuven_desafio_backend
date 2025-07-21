@@ -1,0 +1,35 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:15
+    container_name: backend_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: backend
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build:
+      # O contexto é o diretório onde está o Dockerfile
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend_app
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    # Carrega as variáveis de ambiente do arquivo .env dentro da pasta api
+    env_file:
+      - ./api/.env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/backend
+
+volumes:
+  postgres_data:
