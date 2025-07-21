@@ -1,8 +1,11 @@
 // src/controllers/privateController.ts
 import { Request, Response } from 'express'
 import { PrismaClient } from '@prisma/client'
+import axios from 'axios'
+import { InferenceClient } from '@huggingface/inference'
 
 const prisma = new PrismaClient()
+const hf = new InferenceClient(process.env.HF_TOKEN)
 
 // GET /users
 export async function listarUsers(req: Request, res: Response) {
@@ -105,7 +108,9 @@ export async function buscarRegistros(req: Request, res: Response) {
   }
 }
 
-// POST /queries
+
+
+// POST /queries 
 export async function criarConsulta(req: Request, res: Response) {
   const { question, datasetId } = req.body
   if (!question || !datasetId) {
@@ -116,12 +121,18 @@ export async function criarConsulta(req: Request, res: Response) {
     const userId = req.userId
     if (!userId) return res.status(401).json({ message: 'Não autenticado' })
 
+    // Lógica de simulação de resposta com base em palavras-chave
     const answer = question.toLowerCase().includes('contrato')
       ? 'Este documento trata de cláusulas contratuais.'
       : 'A IA identificou informações relevantes.'
 
+    // Registro da pergunta e da resposta simulada
     const query = await prisma.query.create({
-      data: { userId, question, answer }
+      data: {
+        userId,
+        question,
+        answer
+      }
     })
 
     res.status(201).json(query)
@@ -144,5 +155,65 @@ export async function listarConsultas(req: Request, res: Response) {
     res.status(200).json(queries)
   } catch (error) {
     res.status(500).json({ message: 'Erro ao buscar histórico de consultas' })
+  }
+}
+
+// POST /ai/query (Versão Híbrida com Registro no Banco)
+export async function realizaConsultaIA(req: Request, res: Response) {
+  const { question, datasetId }: { question: string; datasetId: number } = req.body;
+
+  if (!question || !datasetId) {
+    return res.status(400).json({ message: 'A pergunta e o ID do dataset são obrigatórios.' });
+  }
+
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({ message: 'Não autenticado.' });
+    }
+
+    // Lógica de simulação (mock) para a palavra-chave "contrato"
+    if (question.toLowerCase().includes('contrato')) {
+      const mockAnswer = 'Este documento trata de cláusulas contratuais.';
+      
+      // Salva a pergunta e a resposta simulada no histórico
+      const query = await prisma.query.create({
+        data: { userId, question, answer: mockAnswer }
+      });
+      
+      return res.status(200).json(query);
+    }
+
+    // Se não for a palavra-chave, continua com a chamada para a IA real
+    const records = await prisma.record.findMany({
+      where: { datasetId: datasetId, dataset: { userId: userId } },
+    });
+
+    if (records.length === 0) {
+      return res.status(404).json({ message: 'Nenhum registro encontrado para este dataset ou acesso não permitido.' });
+    }
+
+    const context = records.map((record) => JSON.stringify(record.data)).join(" \n ");
+
+    const response = await hf.questionAnswering({
+      model: 'distilbert-base-cased-distilled-squad',
+      inputs: {
+        question: question,
+        context: context
+      }
+    });
+    
+    const answer = response.answer || "A IA não pôde extrair uma resposta do documento.";
+
+    // Salva a pergunta e a resposta da IA real no histórico
+    const query = await prisma.query.create({
+      data: { userId, question, answer }
+    });
+
+    res.status(200).json(query);
+
+  } catch (error: any) {
+    console.error('Erro ao consultar a API de IA externa:', error);
+    res.status(500).json({ message: 'Erro ao processar a consulta de IA.', error: error.message });
   }
 }
