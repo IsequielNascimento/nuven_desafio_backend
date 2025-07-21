@@ -20,7 +20,7 @@ const options: Options = {
             { name: 'Datasets', description: 'Upload e manipulação de datasets' },
             { name: 'Busca', description: 'Busca textual nos dados' },
             { name: 'IA', description: 'Simulação de IA e histórico' },
-            { name: 'Admin', description: 'Operações administrativas' }
+        //    { name: 'Admin', description: 'Operações administrativas' }
         ],
         servers: [
             { url: 'http://localhost:3000' }
