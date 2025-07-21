@@ -91,7 +91,7 @@ cd api
 npm i
 ```
 
-Crie e Preencha as variáveis em .env:
+Crie na pasta API e Preencha as variáveis .env:
 
 ```env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/backend"
