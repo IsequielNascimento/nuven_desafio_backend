@@ -79,7 +79,7 @@ api/
 ### Passos para rodar localmente
 
 ```bash
-git clone [https://github.com/IsequielNascimento/nuven_desafio_backend.git](https://github.com/IsequielNascimento/nuven_desafio_backend.git)
+git clone https://github.com/IsequielNascimento/nuven_desafio_backend.git
 cd nuven_desafio_backend
 ```
 
